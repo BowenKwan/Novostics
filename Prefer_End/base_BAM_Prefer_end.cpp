@@ -38,7 +38,7 @@ int main()
     sam_hdr_t *in_samhdr = NULL;
     samFile *infile = NULL;
 
-    int ret_r = 0, i = 0;
+    int ret_r = 0, i = 0, j = 0;
     bam1_t *bamdata = NULL;
     uint8_t *data = NULL;
     uint32_t *cigar = NULL;
@@ -78,16 +78,21 @@ int main()
     int current_pos;
     int current_length;
 
-
+    int count_gap100=0;
+    int count_gap1000=0;
+    int count_gap10000=0;
+    int count_gap100000=0;
     // read_bam infile
     //if (argc != 2) {
     //    print_usage(stderr);
     //    goto end;
     //}
 
-    inname = "./NA12878_1mb.bam";
-    inname = "/mnt/dt2_dc2stor_data202/users/data/pykwan/Novostics/BAM_files/GM1451.chr22.srt.clipper.bam";
-    inname = "/mnt/dt2_dc2stor_data202/users/data/pykwan/Novostics/BAM_files/GM1451.chr20.srt.clipper.bam";
+    //inname = "./NA12878_1mb.bam";
+    //inname = "/mnt/dt2_dc2stor_data202/users/data/pykwan/Novostics/BAM_files/GM1451.chr22.srt.clipper.bam";
+    //inname = "/mnt/dt2_dc2stor_data202/users/data/pykwan/Novostics/BAM_files/GM1451.chr21.srt.clipper.bam"; 
+    //inname = "/mnt/dt2_dc2stor_data202/users/data/pykwan/Novostics/BAM_files/GM1451.chr20.srt.clipper.bam";
+    inname = "/mnt/dt2_dc2stor_data202/users/data/pykwan/Novostics/BAM_files/GM1451.chr1.srt.clipper.bam";
     printf("Begin\n");
 
     if (!(bamdata = bam_init1())) {
@@ -110,20 +115,26 @@ int main()
     
     t1 = high_resolution_clock::now();
     
+    //printf("current POS: %d", current_pos);
+            
     while ((ret_r = sam_read1(infile, in_samhdr, bamdata)) >= 0)
-    //while ((ret_r = sam_read1(infile, in_samhdr, bamdata)) >= 0 && i<100)
+    //while ((ret_r = sam_read1(infile, in_samhdr, bamdata)) >= 0 && i<10)
     {
-        if(i%300000==0){
-        printf("%d\n",i);
-	}
+        //if(i%300000==0){
+        //printf("%d\n",i);
+	//}
 	//QNAME FLAG RNAME POS MAPQ CIGAR RNEXT PNEXT TLEN SEQ QUAL [TAG:TYPE:VALUE]…
         
         //printf("NAME: %s\n", bam_get_qname(bamdata));                                   //get the query name using the macro
         flags = bam_flag2str(bamdata->core.flag);                                       //flags as string
         tidname = sam_hdr_tid2name(in_samhdr, bamdata->core.tid);
         //printf("RNAME/TID: %d - %s\n", bamdata->core.tid, tidname? tidname: "" );       //retrieves the target name using the value in bam and by referring the header
-        //printf("POS: %" PRIhts_pos "\n", bamdata->core.pos + 0);                          //internally position is 0 based and on text output / SAM it is 1 based
-        //printf("\nTLEN/ISIZE: %" PRIhts_pos "\n", bamdata->core.isize);
+        if(j==0)
+	{
+	printf("POS: %" PRIhts_pos "\n", bamdata->core.pos + 0);                          //internally position is 0 based and on text output / SAM it is 1 based
+	}
+	//printf("current POS: %d", current_pos);
+	//printf("\nTLEN/ISIZE: %" PRIhts_pos "\n", bamdata->core.isize);
 
         if(bamdata->core.isize>0)
         {
@@ -140,6 +151,32 @@ int main()
         //printf("length:\n");
         //print_vector(read_length);
         
+	
+	 
+	if((read_end.back()-current_pos)>100000 && i>0)
+	{
+	count_gap100000++;
+	printf("over 100000:\n i %d pos %d pos %"PRIhts_pos " gap %d\n",i,current_pos,bamdata->core.pos+0, read_end.back()-current_pos);
+	}
+	else if((read_end.back()-current_pos)>10000 && i>0)
+	{
+		count_gap10000++;
+		printf("over 10000:\n i %d pos %d pos %"PRIhts_pos " gap %d\n",i,current_pos,bamdata->core.pos+0, read_end.back()-current_pos);
+	}
+		else if((bamdata->core.pos-current_pos)>1000 && i>0)
+		{
+			count_gap1000++;
+			//printf("over 1000:\n i %d pos %d pos %"PRIhts_pos " gap %d\n",i,current_pos,bamdata->core.pos+0, read_end.back()-current_pos);
+
+		}	
+			else if((bamdata->core.pos-current_pos)>100  && i>0)
+                	{
+                        	count_gap100++;
+				//printf("over 1000:\n i %d pos %d pos %"PRIhts_pos " gap %d\n",i,current_pos,bamdata->core.pos+0, read_end.back()-current_pos);
+                	}	
+
+		
+	
 
         // store read end position and length to vectors
         current_pos= bamdata->core.pos;
@@ -147,10 +184,11 @@ int main()
         current_length= bamdata->core.isize;
 
         // collect read end property
-        count_end(result,bamdata->core.pos, bamdata->core.isize, end_count, count, end_count_pt,median,median_index,upstream,upstream_index,range, start_pos,wave);
+//        count_end(result,bamdata->core.pos, bamdata->core.isize, end_count, count, end_count_pt,median,median_index,upstream,upstream_index,range, start_pos,wave);
         //printf("\n\n");
         i++;
         }
+	j++;
     }
 
     if (ret_r == -1) {
@@ -165,13 +203,13 @@ int main()
 
     // adjust for last entry
 
-    end_count.push_back(count);
-    coverage_start(wave,end_count_pt,count);
+  //  end_count.push_back(count);
+  //  coverage_start(wave,end_count_pt,count);
     
-    update_vectors(result, end_count_pt, count, median, median_index, upstream, upstream_index, range, start_pos,wave);
+  //  update_vectors(result, end_count_pt, count, median, median_index, upstream, upstream_index, range, start_pos,wave);
     
     // fill up last downstream 
-    end_wrap(result,current_pos+1,median, median_index,upstream,upstream_index, range, start_pos);
+  //  end_wrap(result,current_pos+1,median, median_index,upstream,upstream_index, range, start_pos);
     
     t2 = high_resolution_clock::now();
     
@@ -193,10 +231,14 @@ int main()
     printf("%f ms\n",ms_double.count());
     printf("Total number of read = %d\n",i);
 
-    vec_to_file("chr22 read_end", read_end);
-    vec_to_file("chr22 read_length", read_length);
-    vec2d_to_file("chr22 wave", wave);
-    vec10d_to_file("chr22 result", result);
+    printf("gap 100: %d\n", count_gap100);
+    printf("gap 1000: %d\n", count_gap1000);
+    printf("gap 10000: %d\n", count_gap10000);
+    printf("gap 100000: %d\n", count_gap100000);
+    //vec_to_file("chr22 read_end base", read_end);
+    //vec_to_file("chr22 read_length base", read_length);
+    //vec2d_to_file("chr22 wave", wave);
+    //vec10d_to_file("chr22 result", result);
     
 end:
     //cleanup

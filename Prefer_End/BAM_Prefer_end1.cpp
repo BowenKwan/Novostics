@@ -6,6 +6,10 @@
 
 #include <htslib/sam.h>
 #include <htslib/hts.h>
+#include <htslib/hts_endian.h>
+
+#include <fstream>
+#include <iterator>
 
 //#include <inttypes.h>
 
@@ -46,7 +50,7 @@ int main()
     vector<int> read_end;
     vector<int> read_length;
 
-    vector<d10> result;
+    vector<tuple<int,int,int,double,int,int,int,int,int,int>> result;
 
     vector<int> end_count;
 
@@ -61,33 +65,31 @@ int main()
     vector<int> upstream_index;
 
 
-    vector <d2> wave;
+    vector <tuple<int,int>> wave;
 
-    int end_count_pt=16050055;
+    int end_count_pt=0;
 
-    // start position of NA12878 1mb = 9999911   
-    end_count_pt=16050055;
-    //end_count_pt=9999911;
+    end_count_pt=9999911;
 
-    //
-    int start_pos=16050055;
-    //int start_pos=9999911;
+    int start_pos=9999911;
 
     int count=0;
 
     int current_pos;
     int current_length;
+    
+    //fstream file;
+    //file.open("vec.txt",ios_base::out);
+    //ostream_iterator<int> out_itr(file, "\n");
 
-
-    // read_bam infile
+    //read_bam infile
     //if (argc != 2) {
     //    print_usage(stderr);
     //    goto end;
     //}
 
-    inname = "./NA12878_1mb.bam";
+    //inname = "./NA12878_1mb.bam";
     inname = "/mnt/dt2_dc2stor_data202/users/data/pykwan/Novostics/BAM_files/GM1451.chr22.srt.clipper.bam";
-    inname = "/mnt/dt2_dc2stor_data202/users/data/pykwan/Novostics/BAM_files/GM1451.chr20.srt.clipper.bam";
     printf("Begin\n");
 
     if (!(bamdata = bam_init1())) {
@@ -95,12 +97,12 @@ int main()
         goto end;
     }
 
-    // open input file
+    //open input file
     if (!(infile = sam_open(inname, "r"))) {
         printf("Could not open %s\n", inname);
         goto end;
     }
-    // read header
+    //read header
     if (!(in_samhdr = sam_hdr_read(infile))) {
         printf("Failed to read header from file!\n");
         goto end;
@@ -110,13 +112,12 @@ int main()
     
     t1 = high_resolution_clock::now();
     
-    while ((ret_r = sam_read1(infile, in_samhdr, bamdata)) >= 0)
-    //while ((ret_r = sam_read1(infile, in_samhdr, bamdata)) >= 0 && i<100)
+    //while ((ret_r = sam_read1(infile, in_samhdr, bamdata)) >= 0)
+    while ((ret_r = sam_read1(infile, in_samhdr, bamdata)) >= 0 && i<10)
     {
-        if(i%300000==0){
-        printf("%d\n",i);
-	}
-	//QNAME FLAG RNAME POS MAPQ CIGAR RNEXT PNEXT TLEN SEQ QUAL [TAG:TYPE:VALUE]…
+        
+        //printf("%d\n",i);
+        //QNAME FLAG RNAME POS MAPQ CIGAR RNEXT PNEXT TLEN SEQ QUAL [TAG:TYPE:VALUE]…
         
         //printf("NAME: %s\n", bam_get_qname(bamdata));                                   //get the query name using the macro
         flags = bam_flag2str(bamdata->core.flag);                                       //flags as string
@@ -127,27 +128,20 @@ int main()
 
         if(bamdata->core.isize>0)
         {
-            read_end.push_back(bamdata->core.pos);
-            read_length.push_back(bamdata->core.isize);
-
-            // checking for extreme read length
-            //if(bamdata->core.isize>1000){
-            //    printf("POS: %d \n", read_end.back());                          //internally position is 0 based and on text output / SAM it is 1 based
-            //    printf("\nTLEN/ISIZE: %d\n", read_length.back());
-            //}
+        read_end.push_back(bamdata->core.pos);
+        read_length.push_back(bamdata->core.isize);
+        //printf("POS: %d \n", read_end.back());                          //internally position is 0 based and on text output / SAM it is 1 based
+        //printf("\nTLEN/ISIZE: %d\n", read_length.back());
+        
         //printf("read:\n");
         //print_vector(read_end);
         //printf("length:\n");
         //print_vector(read_length);
         
-
-        // store read end position and length to vectors
         current_pos= bamdata->core.pos;
 
         current_length= bamdata->core.isize;
-
-        // collect read end property
-        count_end(result,bamdata->core.pos, bamdata->core.isize, end_count, count, end_count_pt,median,median_index,upstream,upstream_index,range, start_pos,wave);
+        //count_end(result,bamdata->core.pos, bamdata->core.isize, end_count, count, end_count_pt,median,median_index,upstream,upstream_index,range, start_pos,wave);
         //printf("\n\n");
         i++;
         }
@@ -163,25 +157,20 @@ int main()
         printf("Failed to read data\n");
     }
 
-    // adjust for last entry
-
+/*
     end_count.push_back(count);
     coverage_start(wave,end_count_pt,count);
     
     update_vectors(result, end_count_pt, count, median, median_index, upstream, upstream_index, range, start_pos,wave);
     
-    // fill up last downstream 
     end_wrap(result,current_pos+1,median, median_index,upstream,upstream_index, range, start_pos);
-    
+  */  
     t2 = high_resolution_clock::now();
     
     //print_10dvector(result);
 
     //print_vector(read_end);
     //print_vector(read_length);
-    //print_2dvector(wave);
-
-    printf("%ld %d %d\n",max_element(read_length.begin(),read_length.end())-read_length.begin(),read_end[max_element(read_length.begin(),read_length.end())-read_length.begin()],*max_element(read_length.begin(),read_length.end()));
 
     /* Getting number of milliseconds as an integer. */
     ms_int = duration_cast<milliseconds>(t2 - t1);
@@ -192,12 +181,17 @@ int main()
     printf("%ld ms\n",ms_int.count());
     printf("%f ms\n",ms_double.count());
     printf("Total number of read = %d\n",i);
+    
+    //vec_to_file("read_end.txt", read_end);
+    print_vector(read_end);
+    
+    //copy(read_end.begin(), read_end.end(), out_itr);
 
+    //file.close();
+    
     vec_to_file("chr22 read_end", read_end);
     vec_to_file("chr22 read_length", read_length);
-    vec2d_to_file("chr22 wave", wave);
-    vec10d_to_file("chr22 result", result);
-    
+    2dvec_to_file("chr22 wave", wave);
 end:
     //cleanup
     if (in_samhdr) {
@@ -211,4 +205,3 @@ end:
     }
     return ret;
 }
-
