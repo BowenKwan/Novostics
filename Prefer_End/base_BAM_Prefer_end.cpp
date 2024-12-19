@@ -14,9 +14,8 @@
 using namespace std;
 
 
-
-//int main(int argc, char *argv[])
-int main()
+int main(int argc, char *argv[])
+//int main()
 {
     using std::chrono::high_resolution_clock;
     using std::chrono::duration_cast;
@@ -92,7 +91,22 @@ int main()
     //inname = "/mnt/dt2_dc2stor_data202/users/data/pykwan/Novostics/BAM_files/GM1451.chr22.srt.clipper.bam";
     //inname = "/mnt/dt2_dc2stor_data202/users/data/pykwan/Novostics/BAM_files/GM1451.chr21.srt.clipper.bam"; 
     //inname = "/mnt/dt2_dc2stor_data202/users/data/pykwan/Novostics/BAM_files/GM1451.chr20.srt.clipper.bam";
-    inname = "/mnt/dt2_dc2stor_data202/users/data/pykwan/Novostics/BAM_files/GM1451.chr1.srt.clipper.bam";
+    //inname = "/mnt/hwt2_data1/wlpeng/Project_data/2018_kun_PNAS_preferred_ends/GM1451_merged_all/GM1451.chr6.srt.clipper.bam";
+      
+    //inname = "/mnt/hwt2_data1/wlpeng/Project_data/2018_kun_PNAS_preferred_ends/GM1451_merged_all/GM1451.chr5.srt.clipper.bam";    
+    //inname = "/mnt/hwt2_data1/wlpeng/Project_data/2018_kun_PNAS_preferred_ends/GM1451_merged_all/GM1451.chr4.srt.clipper.bam";
+    //inname = "/mnt/hwt2_data1/wlpeng/Project_data/2018_kun_PNAS_preferred_ends/GM1451_merged_all/GM1451.chr3.srt.clipper.bam";
+    //inname = "/mnt/dt2_dc2stor_data202/users/data/pykwan/Novostics/BAM_files/GM1451.chr2.srt.clipper.bam";
+    //inname = "/mnt/dt2_dc2stor_data202/users/data/pykwan/Novostics/BAM_files/GM1451.chr1.srt.clipper.bam";
+    if(argc==1){
+    inname = "./NA12878_1mb.bam";
+    } 
+    else
+    {
+    inname = argv[1];;
+    }
+    printf("BAM file name %s\n",inname);
+    
     printf("Begin\n");
 
     if (!(bamdata = bam_init1())) {
@@ -117,8 +131,8 @@ int main()
     
     //printf("current POS: %d", current_pos);
             
-    while ((ret_r = sam_read1(infile, in_samhdr, bamdata)) >= 0)
-    //while ((ret_r = sam_read1(infile, in_samhdr, bamdata)) >= 0 && i<10)
+    //while ((ret_r = sam_read1(infile, in_samhdr, bamdata)) >= 0)
+    while ((ret_r = sam_read1(infile, in_samhdr, bamdata)) >= 0 && i<10)
     {
         //if(i%300000==0){
         //printf("%d\n",i);
@@ -156,12 +170,14 @@ int main()
 	if((read_end.back()-current_pos)>100000 && i>0)
 	{
 	count_gap100000++;
-	printf("over 100000:\n i %d pos %d pos %"PRIhts_pos " gap %d\n",i,current_pos,bamdata->core.pos+0, read_end.back()-current_pos);
+	//printf("over 100000:\n i %d pos %d pos %"PRIhts_pos " gap %d\n",i,current_pos,bamdata->core.pos+0, read_end.back()-current_pos);
+	printf("%d %d %"PRIhts_pos " %d\n",i,current_pos,bamdata->core.pos+0, read_end.back()-current_pos);
 	}
 	else if((read_end.back()-current_pos)>10000 && i>0)
 	{
 		count_gap10000++;
-		printf("over 10000:\n i %d pos %d pos %"PRIhts_pos " gap %d\n",i,current_pos,bamdata->core.pos+0, read_end.back()-current_pos);
+		printf("%d %d %"PRIhts_pos " %d\n",i,current_pos,bamdata->core.pos+0, read_end.back()-current_pos);        
+		//printf("over 10000:\n i %d pos %d pos %"PRIhts_pos " gap %d\n",i,current_pos,bamdata->core.pos+0, read_end.back()-current_pos);
 	}
 		else if((bamdata->core.pos-current_pos)>1000 && i>0)
 		{
