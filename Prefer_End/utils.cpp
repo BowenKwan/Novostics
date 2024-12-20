@@ -222,7 +222,7 @@ void count_end(vector<d10>& result, int pos, int length, vector<int>& end_count,
         end_count.push_back(count);
         coverage_start(wave,end_count_pt,count);
         coverage_end(wave,pos+length);
-        update_vectors(result, end_count_pt, count, median, median_index, upstream, upstream_index, range, start_pos, wave);
+        //update_vectors(result, end_count_pt, count, median, median_index, upstream, upstream_index, range, start_pos, wave);
 
         count=1;
         end_count_pt++;
@@ -234,7 +234,7 @@ void count_end(vector<d10>& result, int pos, int length, vector<int>& end_count,
     }
     while(end_count_pt<pos){
         end_count.push_back(0);
-        update_vectors(result, end_count_pt, 0, median, median_index, upstream, upstream_index, range, start_pos,wave);
+        //update_vectors(result, end_count_pt, 0, median, median_index, upstream, upstream_index, range, start_pos,wave);
         end_count_pt++;
     }
 }

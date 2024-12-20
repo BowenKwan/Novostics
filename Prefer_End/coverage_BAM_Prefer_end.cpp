@@ -65,10 +65,9 @@ int main(int argc, char *argv[])
     int end_count_pt=16050055;
 
     // start position of NA12878 1mb = 9999911   
-    end_count_pt=16050055;
-    //end_count_pt=9999911;
+    //int end_count_pt=9999911;
 
-    //
+    
     int start_pos=16050055;
     //int start_pos=9999911;
 
@@ -200,7 +199,7 @@ int main(int argc, char *argv[])
         current_length= bamdata->core.isize;
 
         // collect read end property
-//        count_end(result,bamdata->core.pos, bamdata->core.isize, end_count, count, end_count_pt,median,median_index,upstream,upstream_index,range, start_pos,wave);
+        count_end(result,bamdata->core.pos, bamdata->core.isize, end_count, count, end_count_pt,median,median_index,upstream,upstream_index,range, start_pos,wave);
         //printf("\n\n");
         i++;
         }
@@ -219,8 +218,8 @@ int main(int argc, char *argv[])
 
     // adjust for last entry
 
-  //  end_count.push_back(count);
-  //  coverage_start(wave,end_count_pt,count);
+    end_count.push_back(count);
+    coverage_start(wave,end_count_pt,count);
     
   //  update_vectors(result, end_count_pt, count, median, median_index, upstream, upstream_index, range, start_pos,wave);
     
@@ -242,7 +241,10 @@ int main(int argc, char *argv[])
 
     /* Getting number of milliseconds as a double. */
     ms_double = t2 - t1;
-
+    
+    
+    print_2dvector(wave);
+    
     printf("%ld ms\n",ms_int.count());
     printf("%f ms\n",ms_double.count());
     printf("Total number of read = %d\n",i);
